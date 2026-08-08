@@ -69,7 +69,7 @@ function extractTotal(text: string): number | null {
 export async function countTicks(imageUrl: string): Promise<ConteoIA> {
   const completion = await getClient().chat.completions.create({
     model: VISION_MODEL,
-    max_tokens: 2000,
+    max_completion_tokens: 2000,
     messages: [
       {
         role: "user",
