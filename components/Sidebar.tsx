@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/login/actions";
+import { useAppUpdate } from "@/lib/app-update-context";
+import { APP_VERSION } from "@/lib/version";
 
 const NAV_ITEMS = [
   {
@@ -54,8 +56,15 @@ const NAV_ITEMS = [
   },
 ];
 
-export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+export function Sidebar({
+  userEmail,
+  onNavigate,
+}: {
+  userEmail: string | null;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
+  const { checking, checkForUpdate } = useAppUpdate();
 
   return (
     <nav className="flex h-full w-64 flex-col border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
@@ -90,7 +99,34 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </div>
 
-      <form action={signOut} className="border-t border-neutral-200 p-2 dark:border-neutral-800">
+      <div className="border-t border-neutral-200 px-3 py-3 dark:border-neutral-800">
+        {userEmail && (
+          <p
+            className="truncate text-xs text-neutral-500 dark:text-neutral-400"
+            title={userEmail}
+          >
+            {userEmail}
+          </p>
+        )}
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="text-xs text-neutral-400 dark:text-neutral-500">
+            v{APP_VERSION}
+          </span>
+          <button
+            type="button"
+            onClick={checkForUpdate}
+            disabled={checking}
+            className="rounded-md px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-60 dark:text-emerald-400 dark:hover:bg-emerald-950"
+          >
+            {checking ? "Buscando..." : "Actualizar"}
+          </button>
+        </div>
+      </div>
+
+      <form
+        action={signOut}
+        className="border-t border-neutral-200 p-2 dark:border-neutral-800"
+      >
         <button
           type="submit"
           className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
