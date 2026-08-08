@@ -11,6 +11,7 @@ export function CameraCapture({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -20,7 +21,15 @@ export function CameraCapture({
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    e.target.value = ""; // permite volver a elegir el mismo archivo después
     if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Elegí una foto (no un PDF ni otro tipo de archivo).");
+      return;
+    }
+
+    setError(null);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     onCapture(file, url);
@@ -41,14 +50,18 @@ export function CameraCapture({
         </div>
       )}
 
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
       <input
         ref={inputRef}
         type="file"
-        // Lista explícita de tipos (en vez de "image/*") y sin "capture":
-        // en algunas versiones de Android/Chrome, "image/*" a secas hace
-        // que el selector nativo vaya directo a la cámara sin ofrecer
-        // "Archivos"/galería como opción.
-        accept="image/jpeg,image/png,image/webp"
+        // Incluimos application/pdf a propósito (aunque no lo aceptamos:
+        // ver handleChange) porque en Android, cuando el accept sólo
+        // tiene tipos de imagen, Chrome abre directo su "selector de
+        // fotos" simplificado salteando la cámara. Con un tipo no-imagen
+        // en la lista, Chrome usa el selector genérico del sistema
+        // ("Cámara" / "Archivos"), que es lo que necesitamos.
+        accept="image/jpeg,image/png,image/webp,application/pdf"
         onChange={handleChange}
         disabled={disabled}
         className="hidden"
