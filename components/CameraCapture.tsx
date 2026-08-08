@@ -45,7 +45,8 @@ export function CameraCapture({
         ref={inputRef}
         type="file"
         accept="image/*"
-        capture="environment"
+        // Sin "capture": así el navegador ofrece elegir entre cámara o
+        // galería, en vez de forzar la cámara directo.
         onChange={handleChange}
         disabled={disabled}
         className="hidden"
