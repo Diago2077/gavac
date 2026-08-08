@@ -1,6 +1,4 @@
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
-import { z } from "zod";
 import type { Deteccion } from "@/lib/types";
 
 // Modelo con capacidad de visión. Configurable por variable de entorno para
@@ -22,81 +20,62 @@ function getClient(): OpenAI {
   return client;
 }
 
-const DeteccionSchema = z.object({
-  x: z
-    .number()
-    .describe(
-      "Posición horizontal relativa de la garrapata en la imagen, de 0 (borde izquierdo) a 1 (borde derecho).",
-    ),
-  y: z
-    .number()
-    .describe(
-      "Posición vertical relativa de la garrapata en la imagen, de 0 (borde superior) a 1 (borde inferior).",
-    ),
-  tamano_mm_estimado: z
-    .number()
-    .nullable()
-    .describe("Tamaño estimado en milímetros, o null si no se puede estimar."),
-});
-
-const ConteoSchema = z.object({
-  count_total: z
-    .number()
-    .int()
-    .describe(
-      "Cantidad total de garrapatas (teleóginas) visibles en la imagen con tamaño estimado mayor o igual a 4.5mm.",
-    ),
-  detecciones: z.array(DeteccionSchema),
-  observaciones: z
-    .string()
-    .nullable()
-    .describe(
-      "Notas breves sobre la calidad de la foto o dificultades para el conteo, o null si no hay nada relevante.",
-    ),
-});
-
 export type ConteoIA = {
   count_total: number;
   detecciones: Deteccion[];
   observaciones: string | null;
 };
 
-const SYSTEM_PROMPT = `Sos un asistente veterinario especializado en identificar y contar garrapatas
-(teleóginas de Rhipicephalus microplus) en fotografías de bovinos tomadas en el campo.
+// Probamos forzar un JSON estructurado con coordenadas (x,y) por garrapata y
+// el modelo contaba mucho peor que en una conversación libre de ChatGPT con
+// la misma foto: forzarlo a la vez a localizar cada garrapata con precisión
+// y a contar degradaba el conteo (tanto sub como sobre-estimando). Dejamos
+// que razone en texto libre -- igual que en un chat normal -- y extraemos
+// el número final. A cambio, ya no podemos marcar cada garrapata en la foto
+// con un círculo (por eso "detecciones" queda vacío): priorizamos que el
+// número sea confiable por sobre el overlay visual.
+const PROMPT = `Sos un veterinario experto en identificar garrapatas (teleóginas de
+Rhipicephalus microplus) en fotos de bovinos tomadas en el campo.
 
-Instrucciones:
-- Contá únicamente las garrapatas con un tamaño estimado igual o mayor a 4,5 mm (teleóginas adultas), que es el criterio sanitario estándar usado por GAVAC.
-- Para cada garrapata detectada, estimá su posición relativa en la imagen (x, y entre 0 y 1) y su tamaño aproximado en milímetros.
-- Si la imagen no tiene calidad suficiente (desenfocada, muy oscura, muy lejos del animal) para contar con confianza, indicalo en "observaciones" y hacé la mejor estimación posible igualmente.
-- No inventes garrapatas que no estén claramente visibles. Ante la duda, no la cuentes.
-- Respondé exclusivamente en el formato estructurado solicitado.`;
+Mirá la foto con atención y contá cuántas garrapatas tiene el animal, incluyendo
+las que están en racimos densos, parcialmente superpuestas, o parcialmente
+tapadas por el pelo. Razoná paso a paso si te sirve, recorriendo la imagen por
+zonas para no perderte ninguna.
+
+Al final de tu respuesta, en su propia línea, escribí exactamente:
+TOTAL: <número>`;
+
+function extractTotal(text: string): number {
+  const match = text.match(/TOTAL:\s*(\d+)/i);
+  if (!match) {
+    throw new Error("La IA no devolvió un total interpretable.");
+  }
+  return parseInt(match[1], 10);
+}
 
 export async function countTicks(imageUrl: string): Promise<ConteoIA> {
-  const completion = await getClient().chat.completions.parse({
+  const completion = await getClient().chat.completions.create({
     model: VISION_MODEL,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
       {
         role: "user",
         content: [
-          {
-            type: "text",
-            text: "Contá las garrapatas visibles en esta fotografía y devolvé el resultado estructurado.",
-          },
+          { type: "text", text: PROMPT },
           {
             type: "image_url",
-            image_url: { url: imageUrl },
+            image_url: { url: imageUrl, detail: "high" },
           },
         ],
       },
     ],
-    response_format: zodResponseFormat(ConteoSchema, "conteo_garrapatas"),
   });
 
-  const parsed = completion.choices[0]?.message.parsed;
-  if (!parsed) {
-    throw new Error("La IA no devolvió un resultado interpretable.");
-  }
+  const text = completion.choices[0]?.message.content ?? "";
+  const count_total = extractTotal(text);
 
-  return parsed;
+  return {
+    count_total,
+    detecciones: [],
+    observaciones: text.replace(/TOTAL:\s*\d+/i, "").trim() || null,
+  };
 }
