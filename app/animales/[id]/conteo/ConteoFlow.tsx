@@ -5,7 +5,6 @@ import { CameraCapture } from "@/components/CameraCapture";
 import { ConteoResult } from "@/components/ConteoResult";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { createClient } from "@/lib/supabase/client";
-import { splitIntoQuadrants } from "@/lib/image";
 import { LADOS_CUERPO, type Conteo, type LadoCuerpo } from "@/lib/types";
 
 type Step = "elegir_lado" | "capturar" | "resultado";
@@ -59,11 +58,10 @@ export function ConteoFlow({
       } = supabase.storage.from("fotos-garrapatas").getPublicUrl(path);
 
       setStatus("contando");
-      const quadrants = await splitIntoQuadrants(file);
       const res = await fetch("/api/count", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quadrants }),
+        body: JSON.stringify({ imageUrl: publicUrl }),
       });
 
       if (!res.ok) {

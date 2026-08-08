@@ -61,36 +61,14 @@ export type ConteoIA = {
   observaciones: string | null;
 };
 
-const SYSTEM_PROMPT = `Sos un asistente veterinario que cuenta garrapatas (teleóginas de
-Rhipicephalus microplus, tamaño estimado ≥4,5 mm) en fotos de bovinos tomadas en el campo.
+const SYSTEM_PROMPT = `Sos un asistente veterinario especializado en identificar y contar garrapatas
+(teleóginas de Rhipicephalus microplus) en fotografías de bovinos tomadas en el campo.
 
-Reglas estrictas sobre "detecciones":
-- Cada entrada de "detecciones" tiene que corresponder a UNA garrapata real que
-  efectivamente distinguís en la foto, con su posición (x, y) real.
-- Prohibido generar puntos en patrones regulares (grillas, filas, columnas
-  parejas) o "rellenar" posiciones para completar un número. Cada (x, y) debe
-  estar sobre un bulto que realmente ves en la imagen, nunca sobre fondo vacío
-  o fuera del área de la foto.
-- "count_total" tiene que ser exactamente igual a la cantidad de entradas en
-  "detecciones" — no reportes un número distinto al de puntos que marcaste.
-
-Cómo contar bien:
-- Mirá la imagen con atención antes de responder. Es común subestimar en fotos
-  con muchas garrapatas juntas, pero inventar garrapatas que no están es un
-  error igual de grave — priorizá que cada punto reportado sea real y
-  verificable en la imagen.
-- En racimos densos donde las garrapatas están muy pegadas o superpuestas,
-  marcá un punto por cada bulto individual que puedas diferenciar visualmente
-  (aunque estén muy cerca entre sí). Si un racimo es tan denso que no podés
-  distinguir bultos individuales, marcá los que sí podés diferenciar con
-  confianza y mencionalo en "observaciones" en vez de adivinar un número mayor.
-- Contá solo bultos con tamaño estimado ≥4,5 mm aproximadamente (teleóginas
-  adultas). Excluí puntos diminutos (tipo semilla de sésamo o menores).
-
-Otras reglas:
-- Si la imagen no tiene calidad suficiente (desenfocada, muy oscura, muy lejos
-  del animal) para contar con confianza, indicalo en "observaciones" y de
-  todos modos marcá solo las garrapatas que sí podés distinguir con claridad.
+Instrucciones:
+- Contá únicamente las garrapatas con un tamaño estimado igual o mayor a 4,5 mm (teleóginas adultas), que es el criterio sanitario estándar usado por GAVAC.
+- Para cada garrapata detectada, estimá su posición relativa en la imagen (x, y entre 0 y 1) y su tamaño aproximado en milímetros.
+- Si la imagen no tiene calidad suficiente (desenfocada, muy oscura, muy lejos del animal) para contar con confianza, indicalo en "observaciones" y hacé la mejor estimación posible igualmente.
+- No inventes garrapatas que no estén claramente visibles. Ante la duda, no la cuentes.
 - Respondé exclusivamente en el formato estructurado solicitado.`;
 
 export async function countTicks(imageUrl: string): Promise<ConteoIA> {
@@ -107,7 +85,7 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
           },
           {
             type: "image_url",
-            image_url: { url: imageUrl, detail: "high" },
+            image_url: { url: imageUrl },
           },
         ],
       },
@@ -121,54 +99,4 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
   }
 
   return parsed;
-}
-
-// Orden de los cuadrantes tal como los recorta el cliente: arriba-izq,
-// arriba-der, abajo-izq, abajo-der.
-const QUADRANT_OFFSETS: { ox: number; oy: number }[] = [
-  { ox: 0, oy: 0 },
-  { ox: 0.5, oy: 0 },
-  { ox: 0, oy: 0.5 },
-  { ox: 0.5, oy: 0.5 },
-];
-
-// Analiza la foto en 4 cuadrantes por separado (en paralelo) y combina los
-// resultados traduciendo las coordenadas relativas de cada cuadrante a la
-// imagen completa. Mejora la precisión porque el modelo de visión cuenta
-// mucho mejor cuando hay menos objetos por imagen.
-export async function countTicksInQuadrants(
-  quadrantDataUrls: string[],
-): Promise<ConteoIA> {
-  if (quadrantDataUrls.length !== 4) {
-    throw new Error("Se esperaban exactamente 4 cuadrantes.");
-  }
-
-  const resultados = await Promise.all(
-    quadrantDataUrls.map((url) => countTicks(url)),
-  );
-
-  let count_total = 0;
-  const detecciones: Deteccion[] = [];
-  const observacionesList: string[] = [];
-
-  resultados.forEach((r, i) => {
-    const { ox, oy } = QUADRANT_OFFSETS[i];
-    count_total += r.count_total;
-    r.detecciones.forEach((d) => {
-      detecciones.push({
-        x: ox + d.x * 0.5,
-        y: oy + d.y * 0.5,
-        tamano_mm_estimado: d.tamano_mm_estimado,
-      });
-    });
-    if (r.observaciones) observacionesList.push(r.observaciones);
-  });
-
-  return {
-    count_total,
-    detecciones,
-    observaciones: observacionesList.length
-      ? observacionesList.join(" ")
-      : null,
-  };
 }
