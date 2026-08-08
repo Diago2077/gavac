@@ -74,6 +74,10 @@ Respondé exclusivamente en el formato estructurado solicitado.`;
 export async function countTicks(imageUrl: string): Promise<ConteoIA> {
   const completion = await getClient().chat.completions.parse({
     model: VISION_MODEL,
+    // Menos variación entre llamadas para la misma foto (por defecto el
+    // modelo es bastante "creativo", lo que en una tarea de conteo se
+    // traduce en resultados muy distintos de una vez a otra).
+    temperature: 0,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       {
