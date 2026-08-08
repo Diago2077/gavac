@@ -3,11 +3,6 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* La app usa un tema claro fijo (todavia no hay diseño para modo oscuro).
-     Sin esto, el navegador aplica estilos nativos oscuros a los <input>
-     cuando el SO/navegador esta en modo oscuro, dejando el texto tipeado
-     ilegible sobre el fondo blanco de los formularios. */
-  color-scheme: light;
 }
 
 @theme inline {
@@ -15,6 +10,13 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
