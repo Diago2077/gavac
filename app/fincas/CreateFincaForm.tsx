@@ -46,7 +46,7 @@ export function CreateFincaForm() {
         <input
           name="nombre"
           required
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+          className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
         />
       </div>
       <div>
@@ -55,7 +55,7 @@ export function CreateFincaForm() {
         </label>
         <input
           name="propietario"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+          className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
         />
       </div>
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
