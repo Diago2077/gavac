@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { countTicks } from "@/lib/openai";
+import { countTicksInQuadrants } from "@/lib/openai";
 
 const BodySchema = z.object({
-  imageUrl: z.url(),
+  quadrants: z.array(z.string().startsWith("data:image/")).length(4),
 });
 
 export async function POST(request: Request) {
@@ -22,13 +22,13 @@ export async function POST(request: Request) {
   const parsedBody = BodySchema.safeParse(json);
   if (!parsedBody.success) {
     return NextResponse.json(
-      { error: "Falta o es inválida la URL de la imagen." },
+      { error: "Faltan o son inválidos los cuadrantes de la imagen." },
       { status: 400 },
     );
   }
 
   try {
-    const resultado = await countTicks(parsedBody.data.imageUrl);
+    const resultado = await countTicksInQuadrants(parsedBody.data.quadrants);
     return NextResponse.json(resultado);
   } catch (err) {
     console.error("Error contando garrapatas con IA:", err);

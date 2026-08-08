@@ -122,3 +122,53 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
 
   return parsed;
 }
+
+// Orden de los cuadrantes tal como los recorta el cliente: arriba-izq,
+// arriba-der, abajo-izq, abajo-der.
+const QUADRANT_OFFSETS: { ox: number; oy: number }[] = [
+  { ox: 0, oy: 0 },
+  { ox: 0.5, oy: 0 },
+  { ox: 0, oy: 0.5 },
+  { ox: 0.5, oy: 0.5 },
+];
+
+// Analiza la foto en 4 cuadrantes por separado (en paralelo) y combina los
+// resultados traduciendo las coordenadas relativas de cada cuadrante a la
+// imagen completa. Mejora la precisión porque el modelo de visión cuenta
+// mucho mejor cuando hay menos objetos por imagen.
+export async function countTicksInQuadrants(
+  quadrantDataUrls: string[],
+): Promise<ConteoIA> {
+  if (quadrantDataUrls.length !== 4) {
+    throw new Error("Se esperaban exactamente 4 cuadrantes.");
+  }
+
+  const resultados = await Promise.all(
+    quadrantDataUrls.map((url) => countTicks(url)),
+  );
+
+  let count_total = 0;
+  const detecciones: Deteccion[] = [];
+  const observacionesList: string[] = [];
+
+  resultados.forEach((r, i) => {
+    const { ox, oy } = QUADRANT_OFFSETS[i];
+    count_total += r.count_total;
+    r.detecciones.forEach((d) => {
+      detecciones.push({
+        x: ox + d.x * 0.5,
+        y: oy + d.y * 0.5,
+        tamano_mm_estimado: d.tamano_mm_estimado,
+      });
+    });
+    if (r.observaciones) observacionesList.push(r.observaciones);
+  });
+
+  return {
+    count_total,
+    detecciones,
+    observaciones: observacionesList.length
+      ? observacionesList.join(" ")
+      : null,
+  };
+}
