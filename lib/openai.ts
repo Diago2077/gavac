@@ -45,17 +45,31 @@ zonas para no perderte ninguna.
 Al final de tu respuesta, en su propia línea, escribí exactamente:
 TOTAL: <número>`;
 
-function extractTotal(text: string): number {
-  const match = text.match(/TOTAL:\s*(\d+)/i);
-  if (!match) {
-    throw new Error("La IA no devolvió un total interpretable.");
+function extractTotal(text: string): number | null {
+  // Formato pedido: "TOTAL: <número>", pero toleramos variaciones de
+  // formato que suele agregar el modelo (negrita markdown, dos puntos
+  // pegados, etc.) buscando "total" seguido en algún punto por un número.
+  const strict = text.match(/TOTAL:\s*(\d+)/i);
+  if (strict) return parseInt(strict[1], 10);
+
+  const loose = text.match(/total[^\d]{0,10}(\d+)/i);
+  if (loose) return parseInt(loose[1], 10);
+
+  // Último recurso: el último número que aparece en la respuesta suele ser
+  // el total (el razonamiento previo tiende a mencionar números parciales
+  // antes del cierre).
+  const allNumbers = text.match(/\d+/g);
+  if (allNumbers && allNumbers.length > 0) {
+    return parseInt(allNumbers[allNumbers.length - 1], 10);
   }
-  return parseInt(match[1], 10);
+
+  return null;
 }
 
 export async function countTicks(imageUrl: string): Promise<ConteoIA> {
   const completion = await getClient().chat.completions.create({
     model: VISION_MODEL,
+    max_tokens: 2000,
     messages: [
       {
         role: "user",
@@ -70,8 +84,19 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
     ],
   });
 
-  const text = completion.choices[0]?.message.content ?? "";
+  const choice = completion.choices[0];
+  const text = choice?.message.content ?? "";
   const count_total = extractTotal(text);
+
+  if (count_total === null) {
+    console.error(
+      "No se pudo extraer el total. finish_reason:",
+      choice?.finish_reason,
+      "texto:",
+      text,
+    );
+    throw new Error("La IA no devolvió un total interpretable.");
+  }
 
   return {
     count_total,
