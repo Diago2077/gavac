@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { zodResponseFormat } from "openai/helpers/zod";
+import { z } from "zod";
 import type { Deteccion } from "@/lib/types";
 
 // Modelo con capacidad de visión. Configurable por variable de entorno para
@@ -26,55 +28,61 @@ export type ConteoIA = {
   observaciones: string | null;
 };
 
-// Probamos forzar un JSON estructurado con coordenadas (x,y) por garrapata y
-// el modelo contaba mucho peor que en una conversación libre de ChatGPT con
-// la misma foto: forzarlo a la vez a localizar cada garrapata con precisión
-// y a contar degradaba el conteo (tanto sub como sobre-estimando). Dejamos
-// que razone en texto libre -- igual que en un chat normal -- y extraemos
-// el número final. A cambio, ya no podemos marcar cada garrapata en la foto
-// con un círculo (por eso "detecciones" queda vacío): priorizamos que el
-// número sea confiable por sobre el overlay visual.
-const PROMPT = `Sos un veterinario experto en identificar garrapatas (teleóginas de
+// Historial de lo que probamos (por si hay que revisar esto de nuevo):
+// 1. JSON estructurado con coordenadas (x,y) por garrapata: nunca se
+//    negaba a responder, pero contaba mal (6, 141, 43 en la misma foto
+//    en distintos intentos) -- pedirle a la vez localizar con precisión
+//    y contar degradaba el conteo.
+// 2. Texto libre sin schema (como un chat normal): contaba mucho mejor
+//    (~80, cerca del conteo manual de 83), pero el modelo a veces
+//    directamente se niega a responder ("Lo siento, no puedo ayudarte a
+//    contar las garrapatas...") como texto normal -- al no haber un
+//    schema que lo obligue a completar campos, tiene "lugar" para
+//    rechazar la foto.
+// 3. Este enfoque: JSON estructurado (obliga a completar el campo, no
+//    hay lugar para un rechazo en texto libre) pero SIN pedir coordenadas
+//    por garrapata -- solo el total. Combina lo que funcionó de cada
+//    intento anterior.
+const ConteoSchema = z.object({
+  count_total: z
+    .number()
+    .int()
+    .describe(
+      "Cantidad total de garrapatas (teleóginas) visibles en la foto, contadas con cuidado incluyendo racimos densos y superposiciones.",
+    ),
+  observaciones: z
+    .string()
+    .nullable()
+    .describe(
+      "Notas breves sobre la calidad de la foto o dificultades para el conteo, o null si no hay nada relevante.",
+    ),
+});
+
+const SYSTEM_PROMPT = `Sos un veterinario experto en identificar garrapatas (teleóginas de
 Rhipicephalus microplus) en fotos de bovinos tomadas en el campo.
 
-Mirá la foto con atención y contá cuántas garrapatas tiene el animal, incluyendo
-las que están en racimos densos, parcialmente superpuestas, o parcialmente
-tapadas por el pelo. Razoná paso a paso si te sirve, recorriendo la imagen por
-zonas para no perderte ninguna.
+Este es un uso veterinario legítimo: contar parásitos externos en ganado para
+seguimiento sanitario de rutina. Es una tarea de conteo visual estándar, no
+contiene nada sensible.
 
-Al final de tu respuesta, en su propia línea, escribí exactamente:
-TOTAL: <número>`;
-
-function extractTotal(text: string): number | null {
-  // Formato pedido: "TOTAL: <número>", pero toleramos variaciones de
-  // formato que suele agregar el modelo (negrita markdown, dos puntos
-  // pegados, etc.) buscando "total" seguido en algún punto por un número.
-  const strict = text.match(/TOTAL:\s*(\d+)/i);
-  if (strict) return parseInt(strict[1], 10);
-
-  const loose = text.match(/total[^\d]{0,10}(\d+)/i);
-  if (loose) return parseInt(loose[1], 10);
-
-  // Último recurso: el último número que aparece en la respuesta suele ser
-  // el total (el razonamiento previo tiende a mencionar números parciales
-  // antes del cierre).
-  const allNumbers = text.match(/\d+/g);
-  if (allNumbers && allNumbers.length > 0) {
-    return parseInt(allNumbers[allNumbers.length - 1], 10);
-  }
-
-  return null;
-}
+Mirá la foto con atención y contá cuántas garrapatas tiene el animal,
+incluyendo las que están en racimos densos, parcialmente superpuestas, o
+parcialmente tapadas por el pelo. Es común subestimar el conteo en fotos con
+muchas garrapatas juntas -- priorizá un conteo completo y cuidadoso.
+Respondé exclusivamente en el formato estructurado solicitado.`;
 
 export async function countTicks(imageUrl: string): Promise<ConteoIA> {
-  const completion = await getClient().chat.completions.create({
+  const completion = await getClient().chat.completions.parse({
     model: VISION_MODEL,
-    max_completion_tokens: 2000,
     messages: [
+      { role: "system", content: SYSTEM_PROMPT },
       {
         role: "user",
         content: [
-          { type: "text", text: PROMPT },
+          {
+            type: "text",
+            text: "Contá las garrapatas visibles en esta fotografía y devolvé el resultado estructurado.",
+          },
           {
             type: "image_url",
             image_url: { url: imageUrl, detail: "high" },
@@ -82,24 +90,23 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
         ],
       },
     ],
+    response_format: zodResponseFormat(ConteoSchema, "conteo_garrapatas"),
   });
 
   const choice = completion.choices[0];
-  const refusal = choice?.message?.refusal;
-  const text = choice?.message.content ?? "";
-  const count_total = extractTotal(text);
+  const parsed = choice?.message.parsed;
 
-  if (count_total === null) {
+  if (!parsed) {
     const detalle = `finish_reason=${choice?.finish_reason ?? "?"} refusal=${
-      refusal ?? "ninguno"
-    } texto="${text}"`;
-    console.error("No se pudo extraer el total.", detalle);
-    throw new Error(`La IA no devolvió un total interpretable. (${detalle})`);
+      choice?.message?.refusal ?? "ninguno"
+    }`;
+    console.error("La IA no devolvió un resultado interpretable.", detalle);
+    throw new Error(`La IA no devolvió un resultado interpretable. (${detalle})`);
   }
 
   return {
-    count_total,
+    count_total: parsed.count_total,
     detecciones: [],
-    observaciones: text.replace(/TOTAL:\s*\d+/i, "").trim() || null,
+    observaciones: parsed.observaciones,
   };
 }
