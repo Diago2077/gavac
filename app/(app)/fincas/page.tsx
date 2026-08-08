@@ -26,15 +26,16 @@ export default async function FincasPage(props: PageProps<"/fincas">) {
     <div className="flex flex-1 flex-col">
       <Header title="Fincas" />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-6">
-        <CreateFincaForm />
-
         <div className="space-y-3">
-          <Suspense fallback={null}>
-            <SearchBox
-              placeholder="Buscar por nombre o propietario..."
-              paramName="q"
-            />
-          </Suspense>
+          <div className="flex gap-2">
+            <Suspense fallback={null}>
+              <SearchBox
+                placeholder="Buscar por nombre o propietario..."
+                paramName="q"
+              />
+            </Suspense>
+            <CreateFincaForm />
+          </div>
 
           {(!fincas || fincas.length === 0) && (
             <p className="text-sm text-neutral-500 dark:text-neutral-400">

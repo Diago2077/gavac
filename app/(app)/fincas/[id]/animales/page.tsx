@@ -55,15 +55,16 @@ export default async function AnimalesPage(
           <QRCodeDisplay value={`gavac:finca:${finca.id}`} size={96} />
         </div>
 
-        <CreateAnimalForm fincaId={finca.id} />
-
         <div className="space-y-3">
-          <Suspense fallback={null}>
-            <SearchBox
-              placeholder="Buscar por número de caravana..."
-              paramName="q"
-            />
-          </Suspense>
+          <div className="flex gap-2">
+            <Suspense fallback={null}>
+              <SearchBox
+                placeholder="Buscar por número de caravana..."
+                paramName="q"
+              />
+            </Suspense>
+            <CreateAnimalForm fincaId={finca.id} />
+          </div>
 
           {(!animales || animales.length === 0) && (
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
