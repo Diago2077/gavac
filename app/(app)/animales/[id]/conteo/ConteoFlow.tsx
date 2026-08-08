@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { CameraCapture } from "@/components/CameraCapture";
 import { ConteoResult } from "@/components/ConteoResult";
-import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { createClient } from "@/lib/supabase/client";
 import { LADOS_CUERPO, type Conteo, type LadoCuerpo } from "@/lib/types";
 
@@ -118,16 +117,6 @@ export function ConteoFlow({
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Finca: {fincaNombre}
         </p>
-      )}
-
-      {step !== "resultado" && (
-        <div className="flex justify-center">
-          <QRCodeDisplay
-            value={`gavac:animal:${animalId}`}
-            size={96}
-            label="QR de este animal"
-          />
-        </div>
       )}
 
       {step === "elegir_lado" && (

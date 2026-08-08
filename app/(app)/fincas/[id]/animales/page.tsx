@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { SearchBox } from "@/components/SearchBox";
-import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { createClient } from "@/lib/supabase/server";
 import { CreateAnimalForm } from "./CreateAnimalForm";
 import type { Animal, Finca } from "@/lib/types";
@@ -41,19 +40,18 @@ export default async function AnimalesPage(
 
   return (
     <div className="flex flex-1 flex-col">
-      <Header title={finca.nombre} backHref="/fincas" />
+      <Header
+        title={finca.nombre}
+        backHref="/fincas"
+        qr={{
+          value: `gavac:finca:${finca.id}`,
+          label: "QR de esta finca",
+        }}
+      />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-6">
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
-          <div>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              {finca.propietario ?? "Sin propietario registrado"}
-            </p>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              Escaneá este QR para volver directo a esta finca.
-            </p>
-          </div>
-          <QRCodeDisplay value={`gavac:finca:${finca.id}`} size={96} />
-        </div>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          {finca.propietario ?? "Sin propietario registrado"}
+        </p>
 
         <div className="space-y-3">
           <div className="flex gap-2">

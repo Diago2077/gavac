@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { QrButton } from "./QrButton";
 
 export function Header({
   title,
   backHref,
+  qr,
 }: {
   title: string;
   backHref?: string;
+  qr?: { value: string; label?: string };
 }) {
   return (
     <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95">
@@ -22,6 +25,7 @@ export function Header({
         <h1 className="truncate text-lg font-semibold text-emerald-800 dark:text-emerald-400">
           {title}
         </h1>
+        {qr && <QrButton value={qr.value} label={qr.label} />}
       </div>
     </header>
   );

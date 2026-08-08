@@ -39,6 +39,10 @@ export default async function ConteoPage(
       <Header
         title={`Caravana ${animal.caravana}`}
         backHref={finca ? `/fincas/${finca.id}/animales` : "/fincas"}
+        qr={{
+          value: `gavac:animal:${animal.id}`,
+          label: "QR de este animal",
+        }}
       />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
         <ConteoFlow
