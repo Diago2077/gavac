@@ -92,8 +92,8 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
   if (count_total === null) {
     const detalle = `finish_reason=${choice?.finish_reason ?? "?"} refusal=${
       refusal ?? "ninguno"
-    } content_len=${text.length}`;
-    console.error("No se pudo extraer el total.", detalle, "texto:", text);
+    } texto="${text}"`;
+    console.error("No se pudo extraer el total.", detalle);
     throw new Error(`La IA no devolvió un total interpretable. (${detalle})`);
   }
 
