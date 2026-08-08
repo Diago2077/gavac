@@ -44,9 +44,11 @@ export function CameraCapture({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
-        // Sin "capture": así el navegador ofrece elegir entre cámara o
-        // galería, en vez de forzar la cámara directo.
+        // Lista explícita de tipos (en vez de "image/*") y sin "capture":
+        // en algunas versiones de Android/Chrome, "image/*" a secas hace
+        // que el selector nativo vaya directo a la cámara sin ofrecer
+        // "Archivos"/galería como opción.
+        accept="image/jpeg,image/png,image/webp"
         onChange={handleChange}
         disabled={disabled}
         className="hidden"
