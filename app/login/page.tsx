@@ -35,13 +35,15 @@ export default function LoginPage() {
     <div className="flex flex-1 items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-emerald-800">GAVAC</h1>
-          <p className="text-sm text-neutral-600">
+          <h1 className="text-2xl font-bold text-emerald-800 dark:text-emerald-400">
+            GAVAC
+          </h1>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
             Sistema de conteo de garrapatas
           </p>
         </div>
 
-        <div className="flex rounded-lg border border-neutral-300 p-1 text-sm">
+        <div className="flex rounded-lg border border-neutral-300 p-1 text-sm dark:border-neutral-700">
           <button
             type="button"
             onClick={() => {
@@ -51,7 +53,7 @@ export default function LoginPage() {
             className={`flex-1 rounded-md py-2 font-medium transition-colors ${
               mode === "signin"
                 ? "bg-emerald-700 text-white"
-                : "text-neutral-600"
+                : "text-neutral-600 dark:text-neutral-400"
             }`}
           >
             Ingresar
@@ -65,7 +67,7 @@ export default function LoginPage() {
             className={`flex-1 rounded-md py-2 font-medium transition-colors ${
               mode === "signup"
                 ? "bg-emerald-700 text-white"
-                : "text-neutral-600"
+                : "text-neutral-600 dark:text-neutral-400"
             }`}
           >
             Crear cuenta
@@ -73,7 +75,7 @@ export default function LoginPage() {
         </div>
 
         {signedUp ? (
-          <div className="rounded-md bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800">
+          <div className="rounded-md bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
             Cuenta creada. Revisá tu email para confirmar (si la confirmación
             está habilitada) y luego ingresá.
           </div>
@@ -89,7 +91,7 @@ export default function LoginPage() {
             className="space-y-4"
           >
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
+              <label className="block text-sm font-medium text-neutral-700 mb-1 dark:text-neutral-300">
                 Email
               </label>
               <input
@@ -101,7 +103,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
+              <label className="block text-sm font-medium text-neutral-700 mb-1 dark:text-neutral-300">
                 Contraseña
               </label>
               <input

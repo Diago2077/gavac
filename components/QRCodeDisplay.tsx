@@ -28,7 +28,11 @@ export function QRCodeDisplay({
   return (
     <div className="inline-flex flex-col items-center gap-1">
       <canvas ref={canvasRef} width={size} height={size} />
-      {label && <span className="text-xs text-neutral-500">{label}</span>}
+      {label && (
+        <span className="text-xs text-neutral-500 dark:text-neutral-400">
+          {label}
+        </span>
+      )}
     </div>
   );
 }

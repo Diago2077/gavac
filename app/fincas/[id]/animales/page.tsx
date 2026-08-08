@@ -43,12 +43,12 @@ export default async function AnimalesPage(
     <div className="flex flex-1 flex-col">
       <Header title={finca.nombre} backHref="/fincas" />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-6">
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4">
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
           <div>
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
               {finca.propietario ?? "Sin propietario registrado"}
             </p>
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
               Escaneá este QR para volver directo a esta finca.
             </p>
           </div>
@@ -66,24 +66,26 @@ export default async function AnimalesPage(
           </Suspense>
 
           {(!animales || animales.length === 0) && (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
               {q
                 ? "No se encontraron animales con esa búsqueda."
                 : "Todavía no hay animales cargados en esta finca."}
             </p>
           )}
 
-          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
+          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-700 dark:bg-neutral-900">
             {animales?.map((animal) => (
               <li key={animal.id}>
                 <Link
                   href={`/animales/${animal.id}/conteo`}
-                  className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-neutral-50"
+                  className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                 >
-                  <span className="font-medium text-neutral-900">
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">
                     Caravana {animal.caravana}
                   </span>
-                  <span className="text-neutral-400">→</span>
+                  <span className="text-neutral-400 dark:text-neutral-500">
+                    →
+                  </span>
                 </Link>
               </li>
             ))}

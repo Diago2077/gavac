@@ -28,7 +28,7 @@ export function CreateAnimalForm({ fincaId }: { fincaId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full rounded-md border border-dashed border-emerald-400 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+        className="w-full rounded-md border border-dashed border-emerald-400 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-950"
       >
         + Nuevo animal
       </button>
@@ -39,11 +39,13 @@ export function CreateAnimalForm({ fincaId }: { fincaId: string }) {
     <form
       ref={formRef}
       action={formAction}
-      className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
+      className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900"
     >
-      <h2 className="font-medium text-neutral-800">Nuevo animal</h2>
+      <h2 className="font-medium text-neutral-800 dark:text-neutral-100">
+        Nuevo animal
+      </h2>
       <div>
-        <label className="block text-sm text-neutral-600 mb-1">
+        <label className="block text-sm text-neutral-600 mb-1 dark:text-neutral-300">
           Número de caravana
         </label>
         <input
@@ -64,7 +66,7 @@ export function CreateAnimalForm({ fincaId }: { fincaId: string }) {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-md px-4 py-2 text-sm font-medium text-neutral-500 hover:bg-neutral-100"
+          className="rounded-md px-4 py-2 text-sm font-medium text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
         >
           Cancelar
         </button>

@@ -62,7 +62,7 @@ export function QRScanner({
         className="mx-auto w-full max-w-sm overflow-hidden rounded-lg bg-black"
       />
       {starting && (
-        <p className="text-center text-sm text-neutral-500">
+        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">
           Iniciando cámara...
         </p>
       )}

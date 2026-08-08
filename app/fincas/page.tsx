@@ -37,31 +37,33 @@ export default async function FincasPage(props: PageProps<"/fincas">) {
           </Suspense>
 
           {(!fincas || fincas.length === 0) && (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
               {q
                 ? "No se encontraron fincas con esa búsqueda."
                 : "Todavía no hay fincas cargadas. Creá la primera arriba."}
             </p>
           )}
 
-          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
+          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-700 dark:bg-neutral-900">
             {fincas?.map((finca) => (
               <li key={finca.id}>
                 <Link
                   href={`/fincas/${finca.id}/animales`}
-                  className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-neutral-50"
+                  className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                 >
                   <span>
-                    <span className="block font-medium text-neutral-900">
+                    <span className="block font-medium text-neutral-900 dark:text-neutral-100">
                       {finca.nombre}
                     </span>
                     {finca.propietario && (
-                      <span className="block text-sm text-neutral-500">
+                      <span className="block text-sm text-neutral-500 dark:text-neutral-400">
                         {finca.propietario}
                       </span>
                     )}
                   </span>
-                  <span className="text-neutral-400">→</span>
+                  <span className="text-neutral-400 dark:text-neutral-500">
+                    →
+                  </span>
                 </Link>
               </li>
             ))}

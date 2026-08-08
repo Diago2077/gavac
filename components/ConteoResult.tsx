@@ -66,7 +66,7 @@ export function ConteoResult({
           ref={imgRef}
           src={imageUrl}
           alt="Foto analizada"
-          className="w-full rounded-lg border border-neutral-200 object-contain max-h-96"
+          className="w-full rounded-lg border border-neutral-200 object-contain max-h-96 dark:border-neutral-700"
         />
         <canvas
           ref={canvasRef}
@@ -74,13 +74,17 @@ export function ConteoResult({
         />
       </div>
 
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-center">
-        <p className="text-3xl font-bold text-emerald-800">{countTotal}</p>
-        <p className="text-sm text-emerald-700">garrapatas detectadas</p>
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-center dark:border-emerald-900 dark:bg-emerald-950">
+        <p className="text-3xl font-bold text-emerald-800 dark:text-emerald-300">
+          {countTotal}
+        </p>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">
+          garrapatas detectadas
+        </p>
       </div>
 
       {observaciones && (
-        <p className="text-sm text-neutral-600 italic">
+        <p className="text-sm text-neutral-600 italic dark:text-neutral-400">
           Observación de la IA: {observaciones}
         </p>
       )}

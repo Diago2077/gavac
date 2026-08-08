@@ -115,7 +115,9 @@ export function ConteoFlow({
   return (
     <div className="space-y-6">
       {fincaNombre && (
-        <p className="text-sm text-neutral-500">Finca: {fincaNombre}</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          Finca: {fincaNombre}
+        </p>
       )}
 
       {step !== "resultado" && (
@@ -130,7 +132,7 @@ export function ConteoFlow({
 
       {step === "elegir_lado" && (
         <div className="space-y-3">
-          <h2 className="font-medium text-neutral-800">
+          <h2 className="font-medium text-neutral-800 dark:text-neutral-100">
             1. Elegí el lado del cuerpo a fotografiar
           </h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -142,7 +144,7 @@ export function ConteoFlow({
                   setLado(l.value);
                   setStep("capturar");
                 }}
-                className="rounded-md border border-neutral-300 px-3 py-3 text-sm font-medium text-neutral-700 hover:border-emerald-600 hover:bg-emerald-50"
+                className="rounded-md border border-neutral-300 px-3 py-3 text-sm font-medium text-neutral-700 hover:border-emerald-600 hover:bg-emerald-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:border-emerald-500 dark:hover:bg-emerald-950"
               >
                 {l.label}
               </button>
@@ -154,14 +156,14 @@ export function ConteoFlow({
       {step === "capturar" && lado && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-medium text-neutral-800">
+            <h2 className="font-medium text-neutral-800 dark:text-neutral-100">
               2. Foto —{" "}
               {LADOS_CUERPO.find((l) => l.value === lado)?.label}
             </h2>
             <button
               type="button"
               onClick={() => setStep("elegir_lado")}
-              className="text-sm text-emerald-700 hover:underline"
+              className="text-sm text-emerald-700 hover:underline dark:text-emerald-400"
             >
               cambiar lado
             </button>
@@ -189,7 +191,9 @@ export function ConteoFlow({
 
       {step === "resultado" && resultado && fotoUrlFinal && (
         <div className="space-y-4">
-          <h2 className="font-medium text-neutral-800">Resultado</h2>
+          <h2 className="font-medium text-neutral-800 dark:text-neutral-100">
+            Resultado
+          </h2>
           <ConteoResult
             imageUrl={fotoUrlFinal}
             countTotal={resultado.count_total}
@@ -207,11 +211,11 @@ export function ConteoFlow({
       )}
 
       {historial.length > 0 && (
-        <div className="space-y-2 border-t border-neutral-200 pt-4">
-          <h3 className="text-sm font-medium text-neutral-600">
+        <div className="space-y-2 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+          <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
             Últimos conteos registrados
           </h3>
-          <ul className="space-y-1 text-sm text-neutral-500">
+          <ul className="space-y-1 text-sm text-neutral-500 dark:text-neutral-400">
             {historial.map((c) => (
               <li key={c.id} className="flex justify-between">
                 <span>

@@ -33,7 +33,7 @@ export default function ScanPage() {
     <div className="flex flex-1 flex-col">
       <Header title="Escanear QR" backHref="/fincas" />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-4">
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Apuntá la cámara al código QR de la finca o del animal.
         </p>
         <QRScanner onResult={handleResult} />

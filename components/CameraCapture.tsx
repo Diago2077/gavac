@@ -33,10 +33,10 @@ export function CameraCapture({
         <img
           src={previewUrl}
           alt="Foto capturada"
-          className="w-full rounded-lg border border-neutral-200 object-contain max-h-96"
+          className="w-full rounded-lg border border-neutral-200 object-contain max-h-96 dark:border-neutral-700"
         />
       ) : (
-        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 text-neutral-400">
+        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 text-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-500">
           Sin foto todavía
         </div>
       )}
