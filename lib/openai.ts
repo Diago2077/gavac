@@ -7,15 +7,19 @@ import type { Deteccion } from "@/lib/types";
 // poder subir de versión sin tocar código.
 const VISION_MODEL = process.env.OPENAI_VISION_MODEL || "gpt-4o";
 
-// Factor de calibración aplicado al conteo crudo del modelo. Con temperature:0
-// el modelo es consistente foto a foto, pero tiene un sesgo sistemático (ver
-// historial de intentos más abajo) -- en vez de seguir puliendo el texto del
-// prompt a ciegas (lo cual ya demostró voltear el resultado para cualquier
-// lado de forma impredecible entre intentos), corregimos ese sesgo con un
-// multiplicador medido contra conteos manuales reales. Ajustable sin
-// redeploy vía variable de entorno en Vercel a medida que se comparen más
-// fotos reales.
-const CALIBRATION_FACTOR = Number(process.env.TICK_COUNT_CALIBRATION) || 1.38;
+// Calibración aplicada al conteo crudo del modelo. Con temperature:0 el
+// modelo es consistente foto a foto, pero tiene un sesgo sistemático que NO
+// es un simple multiplicador (ver historial de intentos más abajo): en fotos
+// densas subestima (60 crudo vs 83 real, 100 vs 130 real) pero en fotos con
+// pocas garrapatas sobreestima (7 crudo vs 5 real) -- un solo factor ×
+// empeoraba justo los casos con pocas garrapatas. Se ajustó una recta
+// (regresión con los 3 pares crudo/real disponibles) en vez de un
+// multiplicador puro: calibrado = crudo * SLOPE + INTERCEPT. Ambos
+// ajustables sin redeploy vía variables de entorno en Vercel a medida que
+// se sumen más fotos con conteo manual real.
+const CALIBRATION_SLOPE = Number(process.env.TICK_COUNT_CALIBRATION_SLOPE) || 1.35;
+const CALIBRATION_INTERCEPT =
+  Number(process.env.TICK_COUNT_CALIBRATION_INTERCEPT) || -2.5;
 
 // Se instancia de forma perezosa (no en el top-level del módulo) para que el
 // build no falle cuando OPENAI_API_KEY todavía no está configurada.
@@ -69,7 +73,12 @@ export type ConteoIA = {
 //    Ver tag "checkpoint-conteo-v1.2.0". Como ahora el resultado es
 //    predecible, en vez de seguir ajustando el texto del prompt (que
 //    hasta acá cambió de dirección del sesgo sin previo aviso cada vez
-//    que se tocó) corregimos el sesgo con CALIBRATION_FACTOR arriba.
+//    que se tocó) corregimos el sesgo matemáticamente -- primero con un
+//    multiplicador fijo (×1.38, ver tag "checkpoint-conteo-v1.3.0"), pero
+//    con una tercera foto de pocas garrapatas quedó claro que el sesgo no
+//    es proporcional (multiplicar empeoraba justo los conteos bajos).
+//    Ahora se usa una recta (CALIBRATION_SLOPE/CALIBRATION_INTERCEPT
+//    arriba) ajustada a los 3 pares crudo/real disponibles.
 const ConteoSchema = z.object({
   analisis: z
     .string()
@@ -149,11 +158,15 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
     throw new Error(`La IA no devolvió un resultado interpretable. (${detalle})`);
   }
 
-  const countCalibrado = Math.round(parsed.count_total * CALIBRATION_FACTOR);
+  const countCalibrado = Math.max(
+    0,
+    Math.round(parsed.count_total * CALIBRATION_SLOPE + CALIBRATION_INTERCEPT),
+  );
 
   // Log del razonamiento por zonas + valores crudo/calibrado para poder
-  // seguir ajustando CALIBRATION_FACTOR comparando contra conteos manuales
-  // reales (no se guarda en la base ni se muestra en la UI).
+  // seguir ajustando CALIBRATION_SLOPE/CALIBRATION_INTERCEPT comparando
+  // contra conteos manuales reales (no se guarda en la base ni se muestra
+  // en la UI).
   console.log(
     "[countTicks] análisis:",
     parsed.analisis,
@@ -161,7 +174,7 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
     parsed.count_total,
     "| calibrado:",
     countCalibrado,
-    `(x${CALIBRATION_FACTOR})`,
+    `(x${CALIBRATION_SLOPE} + ${CALIBRATION_INTERCEPT})`,
   );
 
   return {
