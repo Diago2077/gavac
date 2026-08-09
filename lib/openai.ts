@@ -39,16 +39,31 @@ export type ConteoIA = {
 //    contar las garrapatas...") como texto normal -- al no haber un
 //    schema que lo obligue a completar campos, tiene "lugar" para
 //    rechazar la foto.
-// 3. Este enfoque: JSON estructurado (obliga a completar el campo, no
-//    hay lugar para un rechazo en texto libre) pero SIN pedir coordenadas
-//    por garrapata -- solo el total. Combina lo que funcionó de cada
-//    intento anterior.
+// 3. JSON estructurado sin coordenadas, solo el total directo: combina lo
+//    que funcionó de los dos anteriores. Resultado aceptado por el
+//    usuario: ~97-112 vs ~83 real (sobreestimación moderada pero
+//    consistente). Ver tag de git "checkpoint-conteo-v1.1.0" para volver
+//    a este estado exacto si hace falta.
+// 4. Este enfoque: igual al 3, pero agregando un campo "analisis" ANTES
+//    de count_total en el schema. Los Structured Outputs de OpenAI generan
+//    los campos en el orden del schema, así que un campo de texto libre
+//    antes del número final funciona como "chain of thought" forzado (el
+//    modelo razona en texto antes de comprometerse con un número), sin
+//    caer en el problema del intento con grilla explícita (que hacía que
+//    el modelo alucinara un patrón de grilla que no existía en la foto).
+//    NO le pedimos que invente una grilla ni que recorte la imagen -- solo
+//    que describa lo que ve, por zonas reales del cuerpo del animal.
 const ConteoSchema = z.object({
+  analisis: z
+    .string()
+    .describe(
+      "Antes de dar el número final: describí en 2-4 frases cómo recorriste la foto para contar (ej. por zonas reales del cuerpo del animal que se ven en la imagen: cuello, paleta, entrepierna, etc, de arriba a abajo), cuántas garrapatas contás aproximadamente en cada zona densa, y qué dificultades hubo (pelo, superposición, foco). No inventes una grilla ni líneas que no estén en la foto -- describí solo lo que realmente se ve.",
+    ),
   count_total: z
     .number()
     .int()
     .describe(
-      "Cantidad total de garrapatas (teleóginas) visibles en la foto, contadas con cuidado incluyendo racimos densos y superposiciones.",
+      "Cantidad total de garrapatas (teleóginas) visibles en la foto: la suma de lo descrito en 'analisis', contada con cuidado incluyendo racimos densos y superposiciones.",
     ),
   observaciones: z
     .string()
@@ -67,8 +82,17 @@ contiene nada sensible.
 
 Mirá la foto con atención y contá cuántas garrapatas tiene el animal,
 incluyendo las que están en racimos densos, parcialmente superpuestas, o
-parcialmente tapadas por el pelo. Es común subestimar el conteo en fotos con
-muchas garrapatas juntas -- priorizá un conteo completo y cuidadoso.
+parcialmente tapadas por el pelo.
+
+El error más común y comprobado en este tipo de conteo es SUBESTIMAR en las
+zonas con muchas garrapatas juntas: cuando hay un racimo denso es fácil verlo
+como "una mancha" y contarlo como pocas unidades en vez de contar cada
+garrapata individual que lo compone. Prestá especial atención a esas zonas
+densas: mirá cada una despacio y contá garrapata por garrapata, no a ojo.
+
+Recorré la foto por zonas reales del cuerpo del animal (cuello, paleta, lomo,
+entrepierna, cola, etc, según lo que se vea) y contá cada zona por separado
+antes de sumar el total -- explicá ese recorrido en el campo "analisis".
 Respondé exclusivamente en el formato estructurado solicitado.`;
 
 export async function countTicks(imageUrl: string): Promise<ConteoIA> {
@@ -107,6 +131,11 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
     console.error("La IA no devolvió un resultado interpretable.", detalle);
     throw new Error(`La IA no devolvió un resultado interpretable. (${detalle})`);
   }
+
+  // Log del razonamiento por zonas para poder ajustar el prompt más
+  // adelante comparando contra conteos manuales reales (no se guarda en
+  // la base ni se muestra en la UI).
+  console.log("[countTicks] análisis:", parsed.analisis, "| total:", parsed.count_total);
 
   return {
     count_total: parsed.count_total,
