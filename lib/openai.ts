@@ -7,6 +7,16 @@ import type { Deteccion } from "@/lib/types";
 // poder subir de versión sin tocar código.
 const VISION_MODEL = process.env.OPENAI_VISION_MODEL || "gpt-4o";
 
+// Factor de calibración aplicado al conteo crudo del modelo. Con temperature:0
+// el modelo es consistente foto a foto, pero tiene un sesgo sistemático (ver
+// historial de intentos más abajo) -- en vez de seguir puliendo el texto del
+// prompt a ciegas (lo cual ya demostró voltear el resultado para cualquier
+// lado de forma impredecible entre intentos), corregimos ese sesgo con un
+// multiplicador medido contra conteos manuales reales. Ajustable sin
+// redeploy vía variable de entorno en Vercel a medida que se comparen más
+// fotos reales.
+const CALIBRATION_FACTOR = Number(process.env.TICK_COUNT_CALIBRATION) || 1.38;
+
 // Se instancia de forma perezosa (no en el top-level del módulo) para que el
 // build no falle cuando OPENAI_API_KEY todavía no está configurada.
 let client: OpenAI | null = null;
@@ -53,6 +63,13 @@ export type ConteoIA = {
 //    el modelo alucinara un patrón de grilla que no existía en la foto).
 //    NO le pedimos que invente una grilla ni que recorte la imagen -- solo
 //    que describa lo que ve, por zonas reales del cuerpo del animal.
+//    Resultado: muy consistente (5/5 intentos con el mismo valor en la
+//    misma foto), pero con sesgo hacia abajo (60 vs 83 real) -- el propio
+//    razonamiento explícito por zonas parece volverlo más conservador.
+//    Ver tag "checkpoint-conteo-v1.2.0". Como ahora el resultado es
+//    predecible, en vez de seguir ajustando el texto del prompt (que
+//    hasta acá cambió de dirección del sesgo sin previo aviso cada vez
+//    que se tocó) corregimos el sesgo con CALIBRATION_FACTOR arriba.
 const ConteoSchema = z.object({
   analisis: z
     .string()
@@ -132,13 +149,23 @@ export async function countTicks(imageUrl: string): Promise<ConteoIA> {
     throw new Error(`La IA no devolvió un resultado interpretable. (${detalle})`);
   }
 
-  // Log del razonamiento por zonas para poder ajustar el prompt más
-  // adelante comparando contra conteos manuales reales (no se guarda en
-  // la base ni se muestra en la UI).
-  console.log("[countTicks] análisis:", parsed.analisis, "| total:", parsed.count_total);
+  const countCalibrado = Math.round(parsed.count_total * CALIBRATION_FACTOR);
+
+  // Log del razonamiento por zonas + valores crudo/calibrado para poder
+  // seguir ajustando CALIBRATION_FACTOR comparando contra conteos manuales
+  // reales (no se guarda en la base ni se muestra en la UI).
+  console.log(
+    "[countTicks] análisis:",
+    parsed.analisis,
+    "| crudo:",
+    parsed.count_total,
+    "| calibrado:",
+    countCalibrado,
+    `(x${CALIBRATION_FACTOR})`,
+  );
 
   return {
-    count_total: parsed.count_total,
+    count_total: countCalibrado,
     detecciones: [],
     observaciones: parsed.observaciones,
   };
