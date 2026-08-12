@@ -14,7 +14,7 @@ export function TableRowLink({
   return (
     <tr
       onClick={() => router.push(href)}
-      className="cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800"
+      className="cursor-pointer select-none hover:bg-neutral-50 dark:hover:bg-neutral-800 [-webkit-touch-callout:none]"
     >
       {children}
     </tr>
