@@ -31,7 +31,6 @@ export default async function ConteoPage(
     .select("*")
     .eq("animal_id", animal.id)
     .order("created_at", { ascending: false })
-    .limit(5)
     .returns<Conteo[]>();
 
   return (
