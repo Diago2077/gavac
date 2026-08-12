@@ -73,7 +73,7 @@ export function Sidebar({
           GAVAC
         </span>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Conteo de garrapatas
+          Biologik
         </p>
       </div>
 

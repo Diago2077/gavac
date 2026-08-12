@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GAVAC - Conteo de Garrapatas",
+  title: "GAVAC - Biologik",
   description:
     "Sistema de conteo de garrapatas con inteligencia artificial para seguimiento sanitario del rodeo.",
   manifest: "/manifest.json",
