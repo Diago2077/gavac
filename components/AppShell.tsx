@@ -16,7 +16,7 @@ export function AppShell({
 
   return (
     <AppUpdateProvider>
-      <div className="flex min-h-full flex-1">
+      <div className="flex h-dvh overflow-hidden">
         {/* Barra superior solo en mobile: hamburguesa para abrir el menú */}
         <div className="fixed inset-x-0 top-0 z-20 flex items-center gap-3 border-b border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden dark:border-neutral-800 dark:bg-neutral-950/95">
           <button
@@ -65,7 +65,9 @@ export function AppShell({
           <Sidebar userEmail={userEmail} onNavigate={() => setOpen(false)} />
         </div>
 
-        <div className="flex flex-1 flex-col pt-14 md:pt-0">{children}</div>
+        <div className="flex flex-1 flex-col overflow-y-auto pt-14 md:pt-0">
+          {children}
+        </div>
       </div>
 
       <UpdateModal />

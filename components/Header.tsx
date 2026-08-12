@@ -3,10 +3,12 @@ import { QrButton } from "./QrButton";
 
 export function Header({
   title,
+  subtitle,
   backHref,
   qr,
 }: {
   title: string;
+  subtitle?: string;
   backHref?: string;
   qr?: { value: string; label?: string };
 }) {
@@ -22,9 +24,16 @@ export function Header({
             ←
           </Link>
         )}
-        <h1 className="truncate text-lg font-semibold text-emerald-800 dark:text-emerald-400">
-          {title}
-        </h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-lg font-semibold leading-tight text-emerald-800 dark:text-emerald-400">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+              {subtitle}
+            </p>
+          )}
+        </div>
         {qr && <QrButton value={qr.value} label={qr.label} />}
       </div>
     </header>

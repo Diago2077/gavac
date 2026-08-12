@@ -17,11 +17,9 @@ type ResultadoIA = {
 
 export function ConteoFlow({
   animalId,
-  fincaNombre,
   conteosPrevios,
 }: {
   animalId: string;
-  fincaNombre: string;
   conteosPrevios: Conteo[];
 }) {
   const [open, setOpen] = useState(false);
@@ -138,12 +136,6 @@ export function ConteoFlow({
 
   return (
     <div className="space-y-6">
-      {fincaNombre && (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Finca: {fincaNombre}
-        </p>
-      )}
-
       <div>
         <p className="text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">
           Total garrapatas{q ? " (filtrado)" : ""}

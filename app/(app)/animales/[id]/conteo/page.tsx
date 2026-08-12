@@ -37,6 +37,7 @@ export default async function ConteoPage(
     <div className="flex flex-1 flex-col">
       <Header
         title={`Caravana ${animal.caravana}`}
+        subtitle={finca?.nombre}
         backHref={finca ? `/fincas/${finca.id}/animales` : "/fincas"}
         qr={{
           value: `gavac:animal:${animal.id}`,
@@ -46,7 +47,6 @@ export default async function ConteoPage(
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
         <ConteoFlow
           animalId={animal.id}
-          fincaNombre={finca?.nombre ?? ""}
           conteosPrevios={conteosPrevios ?? []}
         />
       </main>
