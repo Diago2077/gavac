@@ -204,20 +204,33 @@ export function ConteoFlow({
           <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
             Últimos conteos registrados
           </h3>
-          <ul className="space-y-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {historial.map((c) => (
-              <li key={c.id} className="flex justify-between">
-                <span>
-                  {LADOS_CUERPO.find((l) => l.value === c.lado_cuerpo)
-                    ?.label ?? c.lado_cuerpo}
-                </span>
-                <span>
-                  {c.count_total} garrapatas ·{" "}
-                  {new Date(c.created_at).toLocaleDateString("es-AR")}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 text-left text-xs uppercase text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                <tr>
+                  <th className="px-4 py-2 font-medium">Lado</th>
+                  <th className="px-4 py-2 font-medium">Total</th>
+                  <th className="px-4 py-2 font-medium">Fecha</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 bg-white dark:divide-neutral-800 dark:bg-neutral-900">
+                {historial.map((c) => (
+                  <tr key={c.id}>
+                    <td className="px-4 py-2 text-neutral-700 dark:text-neutral-300">
+                      {LADOS_CUERPO.find((l) => l.value === c.lado_cuerpo)
+                        ?.label ?? c.lado_cuerpo}
+                    </td>
+                    <td className="px-4 py-2 font-medium text-neutral-900 dark:text-neutral-100">
+                      {c.count_total}
+                    </td>
+                    <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">
+                      {new Date(c.created_at).toLocaleDateString("es-AR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

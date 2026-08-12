@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { SearchBox } from "@/components/SearchBox";
 import { createClient } from "@/lib/supabase/server";
 import { CreateAnimalForm } from "./CreateAnimalForm";
+import { TableRowLink } from "@/components/TableRowLink";
 import type { Animal, Finca } from "@/lib/types";
 
 export default async function AnimalesPage(
@@ -72,23 +72,33 @@ export default async function AnimalesPage(
             </p>
           )}
 
-          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-700 dark:bg-neutral-900">
-            {animales?.map((animal) => (
-              <li key={animal.id}>
-                <Link
-                  href={`/animales/${animal.id}/conteo`}
-                  className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                >
-                  <span className="font-medium text-neutral-900 dark:text-neutral-100">
-                    Caravana {animal.caravana}
-                  </span>
-                  <span className="text-neutral-400 dark:text-neutral-500">
-                    →
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 text-left text-xs uppercase text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                <tr>
+                  <th className="px-4 py-2 font-medium">Caravana</th>
+                  <th className="px-4 py-2 font-medium">Creado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 bg-white dark:divide-neutral-800 dark:bg-neutral-900">
+                {animales?.map((animal) => (
+                  <TableRowLink
+                    key={animal.id}
+                    href={`/animales/${animal.id}/conteo`}
+                  >
+                    <td className="px-4 py-3 font-medium text-neutral-900 dark:text-neutral-100">
+                      Caravana {animal.caravana}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
+                      {new Date(animal.created_at).toLocaleDateString(
+                        "es-AR",
+                      )}
+                    </td>
+                  </TableRowLink>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </main>
     </div>

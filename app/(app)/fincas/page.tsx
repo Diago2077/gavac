@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { Header } from "@/components/Header";
 import { createClient } from "@/lib/supabase/server";
 import { CreateFincaForm } from "./CreateFincaForm";
 import { SearchBox } from "@/components/SearchBox";
+import { TableRowLink } from "@/components/TableRowLink";
 import type { Finca } from "@/lib/types";
 
 export default async function FincasPage(props: PageProps<"/fincas">) {
@@ -45,30 +45,35 @@ export default async function FincasPage(props: PageProps<"/fincas">) {
             </p>
           )}
 
-          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-700 dark:bg-neutral-900">
-            {fincas?.map((finca) => (
-              <li key={finca.id}>
-                <Link
-                  href={`/fincas/${finca.id}/animales`}
-                  className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                >
-                  <span>
-                    <span className="block font-medium text-neutral-900 dark:text-neutral-100">
+          <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 text-left text-xs uppercase text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                <tr>
+                  <th className="px-4 py-2 font-medium">Nombre</th>
+                  <th className="px-4 py-2 font-medium">Propietario</th>
+                  <th className="px-4 py-2 font-medium">Creada</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 bg-white dark:divide-neutral-800 dark:bg-neutral-900">
+                {fincas?.map((finca) => (
+                  <TableRowLink
+                    key={finca.id}
+                    href={`/fincas/${finca.id}/animales`}
+                  >
+                    <td className="px-4 py-3 font-medium text-neutral-900 dark:text-neutral-100">
                       {finca.nombre}
-                    </span>
-                    {finca.propietario && (
-                      <span className="block text-sm text-neutral-500 dark:text-neutral-400">
-                        {finca.propietario}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-neutral-400 dark:text-neutral-500">
-                    →
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                    </td>
+                    <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
+                      {finca.propietario ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
+                      {new Date(finca.created_at).toLocaleDateString("es-AR")}
+                    </td>
+                  </TableRowLink>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </main>
     </div>
