@@ -11,5 +11,19 @@ export default async function AppGroupLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  return <AppShell userEmail={user?.email ?? null}>{children}</AppShell>;
+  let nombre: string | null = null;
+  if (user) {
+    const { data: perfil } = await supabase
+      .from("perfiles")
+      .select("nombre")
+      .eq("id", user.id)
+      .maybeSingle();
+    nombre = perfil?.nombre ?? null;
+  }
+
+  return (
+    <AppShell userEmail={user?.email ?? null} userNombre={nombre}>
+      {children}
+    </AppShell>
+  );
 }

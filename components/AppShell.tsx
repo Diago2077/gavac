@@ -8,9 +8,11 @@ import { AppUpdateProvider } from "@/lib/app-update-context";
 export function AppShell({
   children,
   userEmail,
+  userNombre,
 }: {
   children: React.ReactNode;
   userEmail: string | null;
+  userNombre?: string | null;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -64,6 +66,7 @@ export function AppShell({
         >
           <Sidebar
             userEmail={userEmail}
+            userNombre={userNombre}
             onNavigate={() => setOpen(false)}
             onClose={() => setOpen(false)}
           />

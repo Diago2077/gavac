@@ -58,16 +58,18 @@ const NAV_ITEMS = [
 
 export function Sidebar({
   userEmail,
+  userNombre,
   onNavigate,
   onClose,
 }: {
   userEmail: string | null;
+  userNombre?: string | null;
   onNavigate?: () => void;
   onClose?: () => void;
 }) {
   const pathname = usePathname();
   const { checking, checkForUpdate } = useAppUpdate();
-  const nombre = userEmail?.split("@")[0] ?? "Usuario";
+  const nombre = userNombre || userEmail?.split("@")[0] || "Usuario";
   const inicial = nombre.charAt(0).toUpperCase();
 
   return (
