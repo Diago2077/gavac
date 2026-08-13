@@ -34,6 +34,8 @@ export function ConteoFlow({
   const [fotoUrlFinal, setFotoUrlFinal] = useState<string | null>(null);
   const [historial, setHistorial] = useState(conteosPrevios);
   const [eliminandoId, setEliminandoId] = useState<string | null>(null);
+  const [aEliminar, setAEliminar] = useState<Conteo | null>(null);
+  const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
 
   function ladoLabel(valor: LadoCuerpo | string) {
     return LADOS_CUERPO.find((l) => l.value === valor)?.label ?? valor;
@@ -44,13 +46,12 @@ export function ConteoFlow({
     [historial],
   );
 
-  async function handleEliminar(conteo: Conteo) {
-    const confirmado = window.confirm(
-      `¿Eliminar el conteo de "${ladoLabel(conteo.lado_cuerpo)}" (${conteo.count_total} garrapatas)? Esta acción no se puede deshacer.`,
-    );
-    if (!confirmado) return;
+  async function confirmarEliminar() {
+    if (!aEliminar) return;
+    const conteo = aEliminar;
 
     setEliminandoId(conteo.id);
+    setErrorEliminar(null);
     const supabase = createClient();
     const { error: deleteError } = await supabase
       .from("conteos")
@@ -59,11 +60,12 @@ export function ConteoFlow({
     setEliminandoId(null);
 
     if (deleteError) {
-      window.alert("No se pudo eliminar el conteo. Intentá de nuevo.");
+      setErrorEliminar("No se pudo eliminar el conteo. Intentá de nuevo.");
       return;
     }
 
     setHistorial((prev) => prev.filter((c) => c.id !== conteo.id));
+    setAEliminar(null);
   }
 
   async function handleAnalizar() {
@@ -199,7 +201,7 @@ export function ConteoFlow({
                   <td className="px-2 py-2 text-right">
                     <button
                       type="button"
-                      onClick={() => handleEliminar(c)}
+                      onClick={() => setAEliminar(c)}
                       disabled={eliminandoId === c.id}
                       aria-label="Eliminar conteo"
                       className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:text-neutral-500 dark:hover:bg-red-950 dark:hover:text-red-400"
@@ -323,6 +325,42 @@ export function ConteoFlow({
                 </div>
               </div>
             )}
+          </div>
+        </Modal>
+      )}
+
+      {aEliminar && (
+        <Modal onClose={() => setAEliminar(null)}>
+          <div className="space-y-4">
+            <h2 className="font-medium text-neutral-800 dark:text-neutral-100">
+              Eliminar conteo
+            </h2>
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+              ¿Eliminar el conteo de &quot;{ladoLabel(aEliminar.lado_cuerpo)}
+              &quot; ({aEliminar.count_total} garrapatas)? Esta acción no se
+              puede deshacer.
+            </p>
+            {errorEliminar && (
+              <p className="text-sm text-red-600">{errorEliminar}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setAEliminar(null)}
+                disabled={eliminandoId === aEliminar.id}
+                className="flex-1 rounded-md px-4 py-2.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-60 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmarEliminar}
+                disabled={eliminandoId === aEliminar.id}
+                className="flex-1 rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {eliminandoId === aEliminar.id ? "Eliminando..." : "Eliminar"}
+              </button>
+            </div>
           </div>
         </Modal>
       )}
