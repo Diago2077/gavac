@@ -105,7 +105,7 @@ export default async function AnimalesPage(
                     href={`/animales/${animal.id}/conteo`}
                   >
                     <td className="px-4 py-3 font-medium text-neutral-900 dark:text-neutral-100">
-                      Caravana {animal.caravana}
+                      {animal.caravana}
                     </td>
                     <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
                       {totalPorAnimal.get(animal.id) ?? 0}
