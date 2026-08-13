@@ -66,10 +66,6 @@ export default async function AnimalesPage(
         }}
       />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-6">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {finca.propietario ?? "Sin propietario registrado"}
-        </p>
-
         <div className="space-y-3">
           <div className="flex gap-2">
             <Suspense fallback={null}>

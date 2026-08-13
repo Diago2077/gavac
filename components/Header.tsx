@@ -18,10 +18,22 @@ export function Header({
         {backHref && (
           <Link
             href={backHref}
-            className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100 shrink-0"
+            className="flex shrink-0 items-center justify-center text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
             aria-label="Volver"
           >
-            ←
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              className="h-7 w-7"
+            >
+              <path
+                d="M15 5 8 12l7 7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </Link>
         )}
         <div className="min-w-0 flex-1">
