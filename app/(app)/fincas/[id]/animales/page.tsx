@@ -5,7 +5,7 @@ import { SearchBox } from "@/components/SearchBox";
 import { createClient } from "@/lib/supabase/server";
 import { CreateAnimalForm } from "./CreateAnimalForm";
 import { TableRowLink } from "@/components/TableRowLink";
-import type { Animal, Finca } from "@/lib/types";
+import type { Animal, Conteo, Finca } from "@/lib/types";
 
 export default async function AnimalesPage(
   props: PageProps<"/fincas/[id]/animales">,
@@ -37,6 +37,23 @@ export default async function AnimalesPage(
   }
 
   const { data: animales } = await query.returns<Animal[]>();
+
+  const animalIds = animales?.map((a) => a.id) ?? [];
+  const { data: conteos } = animalIds.length
+    ? await supabase
+        .from("conteos")
+        .select("animal_id, count_total")
+        .in("animal_id", animalIds)
+        .returns<Pick<Conteo, "animal_id" | "count_total">[]>()
+    : { data: [] as Pick<Conteo, "animal_id" | "count_total">[] };
+
+  const totalPorAnimal = new Map<string, number>();
+  for (const c of conteos ?? []) {
+    totalPorAnimal.set(
+      c.animal_id,
+      (totalPorAnimal.get(c.animal_id) ?? 0) + c.count_total,
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col">
@@ -77,6 +94,7 @@ export default async function AnimalesPage(
               <thead className="bg-neutral-50 text-left text-xs uppercase text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                 <tr>
                   <th className="px-4 py-2 font-medium">Caravana</th>
+                  <th className="px-4 py-2 font-medium">Total</th>
                   <th className="px-4 py-2 font-medium">Creado</th>
                 </tr>
               </thead>
@@ -88,6 +106,9 @@ export default async function AnimalesPage(
                   >
                     <td className="px-4 py-3 font-medium text-neutral-900 dark:text-neutral-100">
                       Caravana {animal.caravana}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
+                      {totalPorAnimal.get(animal.id) ?? 0}
                     </td>
                     <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
                       {new Date(animal.created_at).toLocaleDateString(
