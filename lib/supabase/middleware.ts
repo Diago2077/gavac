@@ -44,5 +44,26 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Cuentas creadas por auto-registro quedan sin acceso hasta que un
+  // administrador las apruebe manualmente en el dashboard de Supabase
+  // (Authentication > Users > editar > User Metadata > "approved": true).
+  const isPendingRoute = request.nextUrl.pathname.startsWith(
+    "/cuenta-pendiente",
+  );
+  if (user && user.user_metadata?.approved !== true) {
+    if (!isPendingRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/cuenta-pendiente";
+      return NextResponse.redirect(url);
+    }
+    return response;
+  }
+
+  if (user && isPendingRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/fincas";
+    return NextResponse.redirect(url);
+  }
+
   return response;
 }

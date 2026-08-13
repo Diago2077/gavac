@@ -76,8 +76,8 @@ export default function LoginPage() {
 
         {signedUp ? (
           <div className="rounded-md bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
-            Cuenta creada. Revisá tu email para confirmar (si la confirmación
-            está habilitada) y luego ingresá.
+            Cuenta creada. Un administrador tiene que activarla antes de que
+            puedas ingresar.
           </div>
         ) : (
           <form

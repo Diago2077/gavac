@@ -44,7 +44,15 @@ export async function signUp(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    // La cuenta queda creada pero sin acceso hasta que un administrador la
+    // apruebe manualmente (Supabase Dashboard > Authentication > Users >
+    // editar el usuario > User Metadata > poner "approved": true). Ver
+    // lib/supabase/middleware.ts, que bloquea a los usuarios no aprobados.
+    options: { data: { approved: false } },
+  });
 
   if (error) {
     return { error: error.message };
