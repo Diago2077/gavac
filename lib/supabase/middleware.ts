@@ -44,13 +44,22 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Cuentas creadas por auto-registro quedan sin acceso hasta que un
-  // administrador las apruebe manualmente en el dashboard de Supabase
-  // (Authentication > Users > editar > User Metadata > "approved": true).
+  // Cuentas nuevas quedan sin acceso hasta que un administrador las
+  // apruebe tildando la columna "approved" en la tabla "perfiles"
+  // (Table Editor de Supabase).
   const isPendingRoute = request.nextUrl.pathname.startsWith(
     "/cuenta-pendiente",
   );
-  if (user && user.user_metadata?.approved !== true) {
+  let approved = false;
+  if (user) {
+    const { data: perfil } = await supabase
+      .from("perfiles")
+      .select("approved")
+      .eq("id", user.id)
+      .maybeSingle();
+    approved = perfil?.approved === true;
+  }
+  if (user && !approved) {
     if (!isPendingRoute) {
       const url = request.nextUrl.clone();
       url.pathname = "/cuenta-pendiente";
