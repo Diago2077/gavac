@@ -2,6 +2,47 @@
 
 import { useEffect, useRef, useState } from "react";
 
+function CameraIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      className="h-6 w-6"
+    >
+      <path
+        d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1-2h7l1 2h2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-9Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="13" r="3.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function GalleryIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      className="h-6 w-6"
+    >
+      <rect x="3.5" y="4.5" width="17" height="15" rx="1.5" />
+      <circle cx="8.5" cy="9.5" r="1.5" />
+      <path
+        d="m4 16.5 4.5-4.5 3 3 4-4L20.5 15"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const ACCEPT_IMAGENES = "image/jpeg,image/png,image/webp";
+
 export function CameraCapture({
   onCapture,
   disabled,
@@ -9,7 +50,8 @@ export function CameraCapture({
   onCapture: (file: File, previewUrl: string) => void;
   disabled?: boolean;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const camaraRef = useRef<HTMLInputElement>(null);
+  const galeriaRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,29 +94,48 @@ export function CameraCapture({
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
+      {/* El atributo capture fuerza a que este input abra directo la
+          cámara. El otro input no lo tiene, así que abre directo el
+          selector de fotos del celular (galería), sin pasar por la
+          cámara. */}
       <input
-        ref={inputRef}
+        ref={camaraRef}
         type="file"
-        // Incluimos application/pdf a propósito (aunque no lo aceptamos:
-        // ver handleChange) porque en Android, cuando el accept sólo
-        // tiene tipos de imagen, Chrome abre directo su "selector de
-        // fotos" simplificado salteando la cámara. Con un tipo no-imagen
-        // en la lista, Chrome usa el selector genérico del sistema
-        // ("Cámara" / "Archivos"), que es lo que necesitamos.
-        accept="image/jpeg,image/png,image/webp,application/pdf"
+        accept={ACCEPT_IMAGENES}
+        capture="environment"
+        onChange={handleChange}
+        disabled={disabled}
+        className="hidden"
+      />
+      <input
+        ref={galeriaRef}
+        type="file"
+        accept={ACCEPT_IMAGENES}
         onChange={handleChange}
         disabled={disabled}
         className="hidden"
       />
 
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => inputRef.current?.click()}
-        className="w-full rounded-md bg-emerald-700 px-4 py-2.5 font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
-      >
-        {previewUrl ? "Tomar otra foto" : "Tomar / subir foto"}
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => camaraRef.current?.click()}
+          aria-label="Tomar foto con la cámara"
+          className="flex flex-1 items-center justify-center rounded-md bg-emerald-700 py-2.5 text-white hover:bg-emerald-800 disabled:opacity-60"
+        >
+          <CameraIcon />
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => galeriaRef.current?.click()}
+          aria-label="Elegir foto de la galería"
+          className="flex flex-1 items-center justify-center rounded-md bg-emerald-700 py-2.5 text-white hover:bg-emerald-800 disabled:opacity-60"
+        >
+          <GalleryIcon />
+        </button>
+      </div>
     </div>
   );
 }
