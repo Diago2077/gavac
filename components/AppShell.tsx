@@ -62,7 +62,11 @@ export function AppShell({
             open ? "" : "[transform:translateX(-100%)]"
           }`}
         >
-          <Sidebar userEmail={userEmail} onNavigate={() => setOpen(false)} />
+          <Sidebar
+            userEmail={userEmail}
+            onNavigate={() => setOpen(false)}
+            onClose={() => setOpen(false)}
+          />
         </div>
 
         <div className="flex flex-1 flex-col overflow-y-auto pt-14 md:pt-0">
