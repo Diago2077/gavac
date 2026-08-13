@@ -29,6 +29,7 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
 
   const isPublicRoute =
@@ -38,7 +39,19 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/icons") ||
     request.nextUrl.pathname.startsWith("/sw.js");
 
+  // Si hay cookie de sesión pero getUser() falló, puede ser un error de
+  // red transitorio (ej. la PWA recién reconecta a internet al volver de
+  // segundo plano) y no una sesión realmente expirada. En ese caso no
+  // expulsamos al login: dejamos pasar el request para que no se sienta
+  // como un cierre de sesión espontáneo.
+  const hasSessionCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+
   if (!user && !isPublicRoute) {
+    if (hasSessionCookie && userError) {
+      return response;
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
