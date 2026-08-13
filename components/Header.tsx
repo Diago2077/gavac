@@ -36,7 +36,7 @@ export function Header({
             </svg>
           </Link>
         )}
-        <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 items-baseline gap-2">
           <h1 className="truncate text-lg font-semibold leading-tight text-emerald-800 dark:text-emerald-400">
             {title}
           </h1>
