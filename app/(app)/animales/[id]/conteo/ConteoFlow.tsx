@@ -33,24 +33,38 @@ export function ConteoFlow({
   const [resultado, setResultado] = useState<ResultadoIA | null>(null);
   const [fotoUrlFinal, setFotoUrlFinal] = useState<string | null>(null);
   const [historial, setHistorial] = useState(conteosPrevios);
-  const [q, setQ] = useState("");
+  const [eliminandoId, setEliminandoId] = useState<string | null>(null);
 
   function ladoLabel(valor: LadoCuerpo | string) {
     return LADOS_CUERPO.find((l) => l.value === valor)?.label ?? valor;
   }
 
-  const historialFiltrado = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (!query) return historial;
-    return historial.filter((c) =>
-      ladoLabel(c.lado_cuerpo).toLowerCase().includes(query),
-    );
-  }, [historial, q]);
-
-  const totalFiltrado = useMemo(
-    () => historialFiltrado.reduce((sum, c) => sum + c.count_total, 0),
-    [historialFiltrado],
+  const total = useMemo(
+    () => historial.reduce((sum, c) => sum + c.count_total, 0),
+    [historial],
   );
+
+  async function handleEliminar(conteo: Conteo) {
+    const confirmado = window.confirm(
+      `¿Eliminar el conteo de "${ladoLabel(conteo.lado_cuerpo)}" (${conteo.count_total} garrapatas)? Esta acción no se puede deshacer.`,
+    );
+    if (!confirmado) return;
+
+    setEliminandoId(conteo.id);
+    const supabase = createClient();
+    const { error: deleteError } = await supabase
+      .from("conteos")
+      .delete()
+      .eq("id", conteo.id);
+    setEliminandoId(null);
+
+    if (deleteError) {
+      window.alert("No se pudo eliminar el conteo. Intentá de nuevo.");
+      return;
+    }
+
+    setHistorial((prev) => prev.filter((c) => c.id !== conteo.id));
+  }
 
   async function handleAnalizar() {
     if (!file || !lado) return;
@@ -136,23 +150,15 @@ export function ConteoFlow({
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">
-          Total garrapatas{q ? " (filtrado)" : ""}
-        </p>
-        <p className="text-2xl font-semibold text-emerald-800 dark:text-emerald-400">
-          {totalFiltrado}
-        </p>
-      </div>
-
-      <div className="flex gap-2">
-        <input
-          type="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar por lado del cuerpo..."
-          className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
-        />
+      <div className="flex items-end justify-between gap-2">
+        <div>
+          <p className="text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">
+            Total garrapatas
+          </p>
+          <p className="text-2xl font-semibold text-emerald-800 dark:text-emerald-400">
+            {total}
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -163,11 +169,9 @@ export function ConteoFlow({
         </button>
       </div>
 
-      {historialFiltrado.length === 0 ? (
+      {historial.length === 0 ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {q
-            ? "No se encontraron conteos con esa búsqueda."
-            : "Todavía no hay conteos registrados para este animal."}
+          Todavía no hay conteos registrados para este animal.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700">
@@ -177,10 +181,11 @@ export function ConteoFlow({
                 <th className="px-4 py-2 font-medium">Lado</th>
                 <th className="px-4 py-2 font-medium">Total</th>
                 <th className="px-4 py-2 font-medium">Fecha</th>
+                <th className="px-4 py-2 font-medium" />
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200 bg-white dark:divide-neutral-800 dark:bg-neutral-900">
-              {historialFiltrado.map((c) => (
+              {historial.map((c) => (
                 <tr key={c.id}>
                   <td className="px-4 py-2 text-neutral-700 dark:text-neutral-300">
                     {ladoLabel(c.lado_cuerpo)}
@@ -190,6 +195,29 @@ export function ConteoFlow({
                   </td>
                   <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">
                     {new Date(c.created_at).toLocaleDateString("es-AR")}
+                  </td>
+                  <td className="px-2 py-2 text-right">
+                    <button
+                      type="button"
+                      onClick={() => handleEliminar(c)}
+                      disabled={eliminandoId === c.id}
+                      aria-label="Eliminar conteo"
+                      className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:text-neutral-500 dark:hover:bg-red-950 dark:hover:text-red-400"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                        className="h-4.5 w-4.5"
+                      >
+                        <path
+                          d="M5 7h14M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m2 0-.7 12.1a1.5 1.5 0 0 1-1.5 1.4H9.2a1.5 1.5 0 0 1-1.5-1.4L7 7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
                   </td>
                 </tr>
               ))}
