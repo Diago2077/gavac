@@ -16,7 +16,7 @@ export default function LoginPage() {
             GAVAC
           </h1>
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Sistema de conteo de garrapatas
+            Biologik
           </p>
         </div>
 
